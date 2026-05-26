@@ -15,8 +15,10 @@ This is the backend API project for the Enterprise HR & Payroll Management Syste
 3. Created initial `Employee` entity and applied DB migrations.
 4. Initialized Git repository.
 5. Added uniform API response models (Success/Error wrapping).
+6. Installed and configured MediatR for CQRS pattern inside `HRMS.Application`.
+7. Authored boilerplate Command and Handler for creating an `Employee`.
 
 ## Next Steps
-- Implement MediatR for CQRS.
-- Create base controllers.
+- Integrate `ApplicationDbContext` Interface for Application layer isolation (Dependency Inversion).
+- Create base API endpoint Controller to test MediatR command.
 - Add authentication models and JWT setup.
