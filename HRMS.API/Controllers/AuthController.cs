@@ -1,5 +1,6 @@
 using HRMS.Application.Auth.Commands.Login;
 using HRMS.Application.Auth.Commands.Register;
+using HRMS.Application.Auth.Commands.RefreshToken;
 using HRMS.Application.Common.Models;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +31,17 @@ public class AuthController : ControllerBase
 
     [HttpPost("login")]
     public async Task<ActionResult<ApiResponse<AuthResponse>>> Login([FromBody] LoginCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+        return BadRequest(result);
+    }
+
+    [HttpPost("refresh-token")]
+    public async Task<ActionResult<ApiResponse<AuthResponse>>> RefreshToken([FromBody] RefreshTokenCommand command)
     {
         var result = await _mediator.Send(command);
         if (result.Success)
