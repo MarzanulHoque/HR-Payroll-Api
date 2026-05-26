@@ -43,7 +43,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
         var refreshTokenString = _tokenService.GenerateRefreshToken();
 
         // 4. Save refresh token
-        var refreshToken = new RefreshToken
+        var refreshToken = new Domain.Entities.RefreshToken
         {
             Token = refreshTokenString,
             Expires = DateTime.UtcNow.AddDays(7), // Set default expiry logic here or via config

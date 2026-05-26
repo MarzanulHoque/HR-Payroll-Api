@@ -10,6 +10,8 @@ namespace HRMS.Application.Common.Interfaces;
 public interface IApplicationDbContext
 {
     DbSet<Employee> Employees { get; }
+    DbSet<Department> Departments { get; }
+    DbSet<Designation> Designations { get; }
     DbSet<User> Users { get; }
     DbSet<Role> Roles { get; }
     DbSet<UserRole> UserRoles { get; }
