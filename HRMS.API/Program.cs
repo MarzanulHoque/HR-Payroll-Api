@@ -1,5 +1,6 @@
 using HRMS.Infrastructure.Data;
 using HRMS.Application;
+using HRMS.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddApplicationLayer();
+builder.Services.AddInfrastructureLayer();
 
 
 builder.Services.AddControllers();
