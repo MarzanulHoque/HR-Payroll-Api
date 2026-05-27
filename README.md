@@ -1,24 +1,55 @@
-# HR Payroll Project Documentation
+# HR Payroll Project
 
-## Overview
-This is the backend API project for the Enterprise HR & Payroll Management System (HRMS). It serves as a uniform API that will be consumed later by independent Angular and React clients.
+Enterprise HR & Payroll Management System (HRMS) - ASP.NET Core Web API backend implemented with Clean Architecture.
 
-## Architecture
-- **HRMS.Domain**: Core entities and models.
-- **HRMS.Application**: Business logic, CQRS (MediatR), and DTOs.
-- **HRMS.Infrastructure**: EF Core, SQLite configuration, and external services.
-- **HRMS.API**: ASP.NET Core Web API endpoints.
+## Status
+- Architecture: Clean Architecture (Domain / Application / Infrastructure / API)
+- Database: SQLite (code-first)
+- Auth: JWT + BCrypt
+- Completed phases: Initial architecture, Auth, Employee CRUD, Department & Designation, Attendance, Leave Management, Payroll Processing, Dashboard Metrics
 
-## Current Progress (feature/api-foundation)
-1. Scaffolded clean architecture solution.
-2. Initialized SQLite database (`hrms.db`) and `ApplicationDbContext`.
-3. Created initial `Employee` entity and applied DB migrations.
-4. Initialized Git repository.
-5. Added uniform API response models (Success/Error wrapping).
-6. Installed and configured MediatR for CQRS pattern inside `HRMS.Application`.
-7. Authored boilerplate Command and Handler for creating an `Employee`.
+## Tech stack
+- .NET 10, ASP.NET Core Web API
+- Entity Framework Core (SQLite)
+- MediatR (CQRS)
+- xUnit & Moq for unit tests
 
-## Next Steps
-- Integrate `ApplicationDbContext` Interface for Application layer isolation (Dependency Inversion).
-- Create base API endpoint Controller to test MediatR command.
-- Add authentication models and JWT setup.
+## Getting started
+1. Install .NET 10 SDK.
+2. From repository root run:
+
+```powershell
+dotnet build
+cd HRMS.API
+dotnet ef migrations add InitialCreate --project ../HRMS.Infrastructure
+dotnet ef database update --project ../HRMS.Infrastructure
+cd ..
+dotnet test
+```
+
+## Project layout
+- `HRMS.Domain` — domain entities
+- `HRMS.Application` — business logic, CQRS handlers
+- `HRMS.Infrastructure` — EF Core, persistence
+- `HRMS.API` — controllers and web host
+
+## Development workflow notes
+- Follow Clean Architecture: add entities to `HRMS.Domain`, handlers to `HRMS.Application`, mappings in `HRMS.Infrastructure`, and endpoints in `HRMS.API`.
+- Every new feature must include `xUnit` tests in `HRMS.Application.UnitTests` and run `dotnet test` before committing.
+- Internal docs and AI instructions are ignored in Git (`AI_INSTRUCTIONS.md`, `Explanations/`).
+
+## Completed modules
+- Core HR: Employee, Department, Designation CRUD
+- Attendance: Check-in / Check-out
+- Leave Management: Submit / Approve / Reject
+- Payroll Processing: SalarySlip generation, NetPay calculations
+- Dashboard: Top-level metrics API
+
+## Next phases (tracked in `AI_INSTRUCTIONS.md`)
+See `AI_INSTRUCTIONS.md` for the detailed phased roadmap (Auth & RBAC, Advanced Attendance/Shift, Advanced Payroll, Company Configuration, Background Jobs, Notifications, Reporting, Audit Logging).
+
+## Tests
+Run `dotnet test` from solution root.
+
+## Contact
+Repo owner and maintainer: see project remote.
