@@ -45,8 +45,8 @@ dotnet test
 - Payroll Processing: SalarySlip generation, NetPay calculations
 - Dashboard: Top-level metrics API
 
-## Next phases (tracked in `AI_INSTRUCTIONS.md`)
-See `AI_INSTRUCTIONS.md` for the detailed phased roadmap (Auth & RBAC, Advanced Attendance/Shift, Advanced Payroll, Company Configuration, Background Jobs, Notifications, Reporting, Audit Logging).
+## Next phases
+Planned roadmap is maintained privately and will be reflected in public documentation as phases are completed.
 
 ## Tests
 Run `dotnet test` from solution root.
