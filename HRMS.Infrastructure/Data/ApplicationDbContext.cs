@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<LeaveRequest> LeaveRequests { get; set; }
+    public DbSet<SalarySlip> SalarySlips { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

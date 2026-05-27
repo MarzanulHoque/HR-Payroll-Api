@@ -18,6 +18,7 @@ public interface IApplicationDbContext
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<AttendanceRecord> AttendanceRecords { get; }
     DbSet<LeaveRequest> LeaveRequests { get; }
+    DbSet<SalarySlip> SalarySlips { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

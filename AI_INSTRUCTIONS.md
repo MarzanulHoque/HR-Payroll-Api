@@ -28,6 +28,7 @@ The AI must strictly adhere to the following workflow for every feature request:
    - Never pile on too many features without committing.
    - Run `dotnet build` and `dotnet test`. 
    - Use `git add .` and `git commit -m "feat: [Description]"` upon the completion of a module.
+   - **Crucial Git Rule**: Do NOT mention the word "explanation" or "explanations" in the commit message. Create the explanation files, but keep the commit message focused on the code features.
 
 5. **Secrets & Gitignore Compliance**: 
    - Never commit `Explanations/` or `AI_INSTRUCTIONS.md` to Git. (They are ignored).
@@ -47,7 +48,7 @@ The AI must strictly adhere to the following workflow for every feature request:
 - [x] **Phase 1: Leave Management**: 
   - `LeaveRequest` Entity (EmployeeId, StartDate, EndDate, Reason, Status).
   - Submit Leave Request (Command), Approve/Reject Leave Request (Command).
-- [ ] **Phase 2: Payroll Processing**: 
+- [x] **Phase 2: Payroll Processing**: 
   - `SalarySlip` Entity (EmployeeId, BaseSalary, Deductions, NetPay, Month).
   - Generate Payroll Command.
 - [ ] **Phase 3: Dashboard & Reporting (Optional/Later)**: 
