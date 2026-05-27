@@ -19,6 +19,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+    public DbSet<LeaveRequest> LeaveRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
