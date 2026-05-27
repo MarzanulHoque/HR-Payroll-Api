@@ -51,5 +51,5 @@ The AI must strictly adhere to the following workflow for every feature request:
 - [x] **Phase 2: Payroll Processing**: 
   - `SalarySlip` Entity (EmployeeId, BaseSalary, Deductions, NetPay, Month).
   - Generate Payroll Command.
-- [ ] **Phase 3: Dashboard & Reporting (Optional/Later)**: 
+- [x] **Phase 3: Dashboard & Reporting (Optional/Later)**: 
   - API queries to fetch metrics like "Total Employees", "Leaves Pending", "Attendance Today".
