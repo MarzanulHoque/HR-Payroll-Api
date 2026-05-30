@@ -15,6 +15,8 @@ public interface IApplicationDbContext
     DbSet<User> Users { get; }
     DbSet<Role> Roles { get; }
     DbSet<UserRole> UserRoles { get; }
+    DbSet<Permission> Permissions { get; }
+    DbSet<RolePermission> RolePermissions { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<AttendanceRecord> AttendanceRecords { get; }
     DbSet<LeaveRequest> LeaveRequests { get; }

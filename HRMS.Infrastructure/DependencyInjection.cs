@@ -15,6 +15,8 @@ public static class DependencyInjection
 
         // Register token service
         services.AddScoped<ITokenService, TokenService>();
+        // Register permission service
+        services.AddScoped<IPermissionService, PermissionService>();
 
         return services;
     }
