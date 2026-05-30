@@ -52,6 +52,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Run DB seeders
+await HRMS.Infrastructure.Seed.DatabaseSeeder.SeedAsync(app.Services);
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
