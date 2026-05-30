@@ -52,17 +52,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Recreate the local dev schema so new tables from later phases are applied cleanly.
+// Create the local dev schema only when it does not already exist.
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.EnsureDeletedAsync();
     await db.Database.EnsureCreatedAsync();
 }
-
-// Run DB seeders
-await HRMS.Infrastructure.Seed.DatabaseSeeder.SeedAsync(app.Services);
 
 app.UseHttpsRedirection();
 
