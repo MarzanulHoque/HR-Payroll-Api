@@ -33,6 +33,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add services to the container.
 builder.Services.AddApplicationLayer();
 builder.Services.AddInfrastructureLayer();
+// Register permission-based authorization
+builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationPolicyProvider, HRMS.API.Authorization.PermissionPolicyProvider>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, HRMS.API.Authorization.PermissionHandler>();
 
 
 builder.Services.AddControllers();
