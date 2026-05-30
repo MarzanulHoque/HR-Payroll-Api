@@ -403,6 +403,7 @@ FodyWeavers.xsd
 AI_INSTRUCTIONS.md
 Explanations/
 **/AI_INSTRUCTIONS.md
+AGENTS/
 *.msix
 *.msm
 *.msp
