@@ -402,6 +402,7 @@ FodyWeavers.xsd
 # Local AI docs (do not commit)
 AI_INSTRUCTIONS.md
 Explanations/
+**/AI_INSTRUCTIONS.md
 *.msix
 *.msm
 *.msp
