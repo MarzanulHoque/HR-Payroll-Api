@@ -50,6 +50,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 options.DefaultChallengeScheme = "Test";
             }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
 
+            // add a simple authorization policy for the payroll.generate permission during tests
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("payroll.generate", policy => policy.RequireClaim("permission", "payroll.generate"));
+            });
+
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
