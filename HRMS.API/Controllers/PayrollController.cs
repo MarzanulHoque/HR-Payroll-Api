@@ -97,6 +97,20 @@ public class PayrollController : ControllerBase
         return File(bytes, "application/pdf", fileName);
     }
 
+    [HttpPost("slips/{id}/email")]
+    [Authorize(Policy = "payroll.generate")]
+    public async Task<IActionResult> EmailSalarySlip([FromRoute] Guid id, [FromBody] EmailRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.To))
+            return BadRequest(ApiResponse<string>.FailureResponse("Recipient email is required."));
+
+        var result = await _mediator.Send(new HRMS.Application.Payroll.Commands.SendPayslipEmail.SendPayslipEmailCommand(id, request.To));
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
     private static byte[] GenerateSimplePdf(string text)
     {
         // Build a very small PDF containing the provided text. This is not feature-complete
@@ -171,4 +185,9 @@ public class PayrollController : ControllerBase
         }
         return input;
     }
+}
+
+public class EmailRequest
+{
+    public string To { get; set; } = string.Empty;
 }

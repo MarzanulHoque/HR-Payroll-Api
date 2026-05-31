@@ -17,6 +17,8 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, TokenService>();
         // Register permission service
         services.AddScoped<IPermissionService, PermissionService>();
+        // Register email service (SMTP). If SMTP not configured, service becomes a no-op.
+        services.AddScoped<IEmailService, SmtpEmailService>();
 
         return services;
     }

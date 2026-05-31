@@ -48,6 +48,7 @@ public class GetAllSalarySlipsQueryHandler : IRequestHandler<GetAllSalarySlipsQu
                 Id = s.Id,
                 EmployeeId = s.EmployeeId,
                 EmployeeName = s.Employee != null ? $"{s.Employee.FirstName} {s.Employee.LastName}" : "Unknown",
+                EmployeeEmail = s.Employee != null ? s.Employee.Email : string.Empty,
                 Month = s.Month,
                 BaseSalary = s.BaseSalary,
                 Deductions = s.Deductions,
