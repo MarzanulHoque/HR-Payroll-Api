@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using HRMS.Application.Common.Interfaces;
 using HRMS.Domain.Entities;
+using HRMS.Application.Common.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Infrastructure.Services;
 
@@ -30,5 +32,26 @@ public class NotificationService : INotificationService
 
         // send email notification as well (noop in dev)
         await _emailService.SendEmailAsync(recipient, title, body);
+    }
+
+    public async Task<List<NotificationDto>> GetForRecipientAsync(string recipient, int page = 1, int pageSize = 25)
+    {
+        var q = _db.Notifications
+            .Where(n => n.Recipient == recipient)
+            .OrderByDescending(n => n.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize);
+
+        var list = await q.Select(n => new NotificationDto(n.Id, n.Title, n.Body, n.Recipient, n.IsRead, n.CreatedAt)).ToListAsync();
+        return list;
+    }
+
+    public async Task<bool> MarkAsReadAsync(Guid id, string recipient)
+    {
+        var n = await _db.Notifications.FirstOrDefaultAsync(x => x.Id == id && x.Recipient == recipient);
+        if (n == null) return false;
+        n.IsRead = true;
+        await _db.SaveChangesAsync(default);
+        return true;
     }
 }
