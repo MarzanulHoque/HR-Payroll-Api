@@ -45,7 +45,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
         // 4. Save refresh token
         var refreshToken = new Domain.Entities.RefreshToken
         {
-            Token = refreshTokenString,
+            TokenHash = HashToken(refreshTokenString),
             Expires = DateTime.UtcNow.AddDays(7), // Set default expiry logic here or via config
             UserId = user.Id
         };
@@ -60,5 +60,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
         };
 
         return ApiResponse<AuthResponse>.SuccessResponse(authResponse, "Login successful.");
+    }
+
+    private static string HashToken(string token)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(token);
+        var hash = sha.ComputeHash(bytes);
+        return Convert.ToHexString(hash);
     }
 }

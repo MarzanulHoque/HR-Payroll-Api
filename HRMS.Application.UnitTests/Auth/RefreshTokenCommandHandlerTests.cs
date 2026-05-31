@@ -29,7 +29,7 @@ public class RefreshTokenCommandHandlerTests
 
         var existingToken = new RefreshToken
         {
-            Token = "old-refresh-token",
+            TokenHash = Hash("old-refresh-token"),
             Expires = DateTime.UtcNow.AddDays(1),
             User = user,
             UserId = user.Id
@@ -75,17 +75,17 @@ public class RefreshTokenCommandHandlerTests
 
         var oldToken = new RefreshToken
         {
-            Token = "old-refresh-token",
+            TokenHash = Hash("old-refresh-token"),
             Expires = DateTime.UtcNow.AddDays(1),
             Revoked = DateTime.UtcNow.AddMinutes(-10),
-            ReplacedByToken = "new-refresh-token",
+            ReplacedByTokenHash = Hash("new-refresh-token"),
             User = user,
             UserId = user.Id
         };
 
         var activeToken = new RefreshToken
         {
-            Token = "active-refresh-token",
+            TokenHash = Hash("active-refresh-token"),
             Expires = DateTime.UtcNow.AddDays(1),
             User = user,
             UserId = user.Id
@@ -100,6 +100,13 @@ public class RefreshTokenCommandHandlerTests
         var tokenServiceMock = new Mock<ITokenService>();
 
         var handler = new RefreshTokenCommandHandler(contextMock.Object, tokenServiceMock.Object);
+
+        static string Hash(string t)
+        {
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var bytes = System.Text.Encoding.UTF8.GetBytes(t);
+            return Convert.ToHexString(sha.ComputeHash(bytes));
+        }
 
         // Act
         var result = await handler.Handle(new RefreshTokenCommand("old-refresh-token"), CancellationToken.None);

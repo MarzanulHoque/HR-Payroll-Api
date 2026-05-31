@@ -18,14 +18,23 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         _tokenService = tokenService;
     }
 
+    private static string HashToken(string token)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(token);
+        var hash = sha.ComputeHash(bytes);
+        return Convert.ToHexString(hash);
+    }
+
     public async Task<ApiResponse<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         // 1. Find the refresh token in the DB and include User data
+        var hashedRequestToken = HashToken(request.Token);
         var existingToken = await _context.RefreshTokens
             .Include(rt => rt.User)
             .ThenInclude(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(rt => rt.Token == request.Token, cancellationToken);
+            .FirstOrDefaultAsync(rt => rt.TokenHash == hashedRequestToken, cancellationToken);
 
         if (existingToken == null)
         {
@@ -36,7 +45,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         // treat as a possible token reuse attack and revoke all active tokens for the user.
         if (!existingToken.IsActive)
         {
-            if (existingToken.Revoked != null && !string.IsNullOrEmpty(existingToken.ReplacedByToken))
+            if (existingToken.Revoked != null && !string.IsNullOrEmpty(existingToken.ReplacedByTokenHash))
             {
                 // Revoke all active refresh tokens for this user
                 var userActiveTokens = _context.RefreshTokens.Where(t => t.UserId == existingToken.UserId && t.Revoked == null);
@@ -56,12 +65,12 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 
         // 3. Revoke old token and mark replacement
         existingToken.Revoked = DateTime.UtcNow;
-        existingToken.ReplacedByToken = newRefreshTokenString;
+        existingToken.ReplacedByTokenHash = HashToken(newRefreshTokenString);
 
         // 4. Save new refresh token
         var newRefreshToken = new Domain.Entities.RefreshToken
         {
-            Token = newRefreshTokenString,
+            TokenHash = HashToken(newRefreshTokenString),
             Expires = DateTime.UtcNow.AddDays(7),
             UserId = existingToken.UserId
         };

@@ -466,13 +466,13 @@ public static class DatabaseSeeder
             db.RefreshTokens.AddRange(
                 new RefreshToken
                 {
-                    Token = Guid.NewGuid().ToString("N"),
+                    TokenHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Guid.NewGuid().ToString("N")))),
                     Expires = DateTime.UtcNow.AddDays(7),
                     UserId = adminId
                 },
                 new RefreshToken
                 {
-                    Token = Guid.NewGuid().ToString("N"),
+                    TokenHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(Guid.NewGuid().ToString("N")))),
                     Expires = DateTime.UtcNow.AddDays(7),
                     UserId = hrId
                 });
