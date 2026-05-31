@@ -24,6 +24,13 @@ public class RolesPermissionsController : ControllerBase
         return Ok(perms);
     }
 
+    [HttpGet("roles")]
+    public IActionResult GetRoles()
+    {
+        var roles = _context.Roles.Select(r => new { r.Id, r.Name }).ToList();
+        return Ok(roles);
+    }
+
     [HttpPost("permissions")]
     public async Task<IActionResult> CreatePermission([FromBody] Permission dto)
     {
@@ -49,6 +56,22 @@ public class RolesPermissionsController : ControllerBase
         if (exists) return NoContent();
 
         _context.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = permissionId });
+        await _context.SaveChangesAsync(CancellationToken.None);
+        return NoContent();
+    }
+
+    [HttpPost("roles/{roleId}/users/{userId}")]
+    public async Task<IActionResult> AssignRoleToUser(Guid roleId, Guid userId)
+    {
+        var exists = _context.UserRoles.Any(ur => ur.RoleId == roleId && ur.UserId == userId);
+        if (exists) return NoContent();
+
+        // Ensure user and role exist
+        var userExists = _context.Users.Any(u => u.Id == userId);
+        var roleExists = _context.Roles.Any(r => r.Id == roleId);
+        if (!userExists || !roleExists) return NotFound();
+
+        _context.UserRoles.Add(new UserRole { RoleId = roleId, UserId = userId });
         await _context.SaveChangesAsync(CancellationToken.None);
         return NoContent();
     }

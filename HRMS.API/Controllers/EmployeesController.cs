@@ -25,9 +25,9 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<EmployeeDto>>>> GetAll()
+    public async Task<ActionResult<ApiResponse<List<EmployeeDto>>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 25)
     {
-        var result = await _mediator.Send(new GetEmployeesQuery());
+        var result = await _mediator.Send(new GetEmployeesQuery(page, pageSize));
         return result.Success ? Ok(result) : BadRequest(result);
     }
 

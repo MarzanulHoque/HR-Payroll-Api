@@ -16,9 +16,19 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, ApiRe
 
     public async Task<ApiResponse<List<EmployeeDto>>> Handle(GetEmployeesQuery request, CancellationToken cancellationToken)
     {
-        // Simple mapping without AutoMapper for now
-        var employees = await _context.Employees
+        // Basic pagination support. Search/sort will be added later.
+        var q = _context.Employees
             .Where(e => e.IsActive)
+            .AsNoTracking()
+            .AsQueryable();
+
+        var page = Math.Max(request.Page, 1);
+        var pageSize = Math.Clamp(request.PageSize, 1, 200);
+        var skip = (page - 1) * pageSize;
+
+        var employees = await q
+            .Skip(skip)
+            .Take(pageSize)
             .Select(e => new EmployeeDto
             {
                 Id = e.Id,
