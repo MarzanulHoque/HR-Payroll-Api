@@ -75,4 +75,50 @@ public class RolesPermissionsController : ControllerBase
         await _context.SaveChangesAsync(CancellationToken.None);
         return NoContent();
     }
+
+    [HttpGet("users/{userId}/roles")]
+    public IActionResult GetUserRoles(Guid userId)
+    {
+        var roles = _context.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => new { ur.RoleId, RoleName = ur.Role.Name })
+            .ToList();
+
+        if (!roles.Any()) return NotFound();
+        return Ok(roles);
+    }
+
+    [HttpDelete("roles/{roleId}/users/{userId}")]
+    public async Task<IActionResult> RemoveRoleFromUser(Guid roleId, Guid userId)
+    {
+        var existing = _context.UserRoles.SingleOrDefault(ur => ur.RoleId == roleId && ur.UserId == userId);
+        if (existing == null) return NotFound();
+
+        _context.UserRoles.Remove(existing);
+        await _context.SaveChangesAsync(CancellationToken.None);
+        return NoContent();
+    }
+
+    [HttpGet("roles/{roleId}/permissions")]
+    public IActionResult GetRolePermissions(Guid roleId)
+    {
+        var perms = _context.RolePermissions
+            .Where(rp => rp.RoleId == roleId)
+            .Select(rp => new { rp.PermissionId, PermissionName = rp.Permission.Name })
+            .ToList();
+
+        if (!perms.Any()) return NotFound();
+        return Ok(perms);
+    }
+
+    [HttpDelete("roles/{roleId}/permissions/{permissionId}")]
+    public async Task<IActionResult> RemovePermissionFromRole(Guid roleId, Guid permissionId)
+    {
+        var existing = _context.RolePermissions.SingleOrDefault(rp => rp.RoleId == roleId && rp.PermissionId == permissionId);
+        if (existing == null) return NotFound();
+
+        _context.RolePermissions.Remove(existing);
+        await _context.SaveChangesAsync(CancellationToken.None);
+        return NoContent();
+    }
 }
