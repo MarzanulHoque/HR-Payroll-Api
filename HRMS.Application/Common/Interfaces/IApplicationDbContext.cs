@@ -23,6 +23,7 @@ public interface IApplicationDbContext
     DbSet<SalarySlip> SalarySlips { get; }
     DbSet<OrganizationPolicy> OrganizationPolicies { get; }
     DbSet<AuditLog> AuditLogs { get; }
+    DbSet<Notification> Notifications { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

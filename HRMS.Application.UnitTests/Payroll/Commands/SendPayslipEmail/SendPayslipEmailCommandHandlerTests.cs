@@ -3,6 +3,7 @@ using HRMS.Application.Payroll.Commands.SendPayslipEmail;
 using HRMS.Application.Payroll.Queries.GetSalarySlips;
 using HRMS.Application.Common.Models;
 using MediatR;
+using Moq;
 using System.Threading.Tasks;
 using System.Threading;
 using Xunit;
@@ -30,16 +31,13 @@ public class SendPayslipEmailCommandHandlerTests
         };
 
         var emailService = new FakeEmailService();
-        var mediator = new FakeMediator(request =>
-        {
-            if (request is GetSalarySlipByIdQuery q && q.Id == slipId)
-            {
-                return Task.FromResult((object)ApiResponse<SalarySlipDto>.SuccessResponse(slip));
-            }
-            return Task.FromResult((object)ApiResponse<SalarySlipDto>.FailureResponse("not found"));
-        });
+        var mediatorMock = new Mock<IMediator>();
+        mediatorMock.Setup(m => m.Send(It.Is<GetSalarySlipByIdQuery>(q => q.Id == slipId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiResponse<SalarySlipDto>.SuccessResponse(slip));
+        mediatorMock.Setup(m => m.Send(It.Is<GetSalarySlipByIdQuery>(q => q.Id != slipId), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiResponse<SalarySlipDto>.FailureResponse("not found"));
 
-        var handler = new SendPayslipEmailCommandHandler(mediator, emailService);
+        var handler = new SendPayslipEmailCommandHandler(mediatorMock.Object, emailService);
 
         var result = await handler.Handle(new SendPayslipEmailCommand(slipId, "recipient@example.com"), CancellationToken.None);
 
@@ -68,25 +66,5 @@ public class SendPayslipEmailCommandHandlerTests
         }
     }
 
-    private class FakeMediator : IMediator
-    {
-        private readonly Func<object, Task<object>> _responder;
-        public FakeMediator(Func<object, Task<object>> responder)
-        {
-            _responder = responder;
-        }
-
-        public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
-        {
-            var task = _responder(request);
-            return task.ContinueWith(t => (TResponse)t.Result, cancellationToken);
-        }
-
-        // Not used in these tests
-        public Task<object?> Send(object request, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public IAsyncEnumerable<TResponse> CreateStream<TResponse>(IStreamRequest<TResponse> request, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public IAsyncEnumerable<object?> CreateStream(object request, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task Publish(object notification, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification => throw new NotImplementedException();
-    }
+    // Using Moq to simulate IMediator in tests above.
 }

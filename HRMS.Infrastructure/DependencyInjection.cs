@@ -21,6 +21,10 @@ public static class DependencyInjection
         services.AddScoped<IEmailService, NoOpEmailService>();
         // Register audit service
         services.AddScoped<IAuditService, AuditService>();
+        // Register notifications
+        services.AddScoped<INotificationService, NotificationService>();
+        // Register reporting
+        services.AddScoped<IReportService, ReportService>();
 
         return services;
     }

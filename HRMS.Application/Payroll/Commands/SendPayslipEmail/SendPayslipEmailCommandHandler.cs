@@ -19,10 +19,10 @@ public class SendPayslipEmailCommandHandler : IRequestHandler<SendPayslipEmailCo
     public async Task<ApiResponse<bool>> Handle(SendPayslipEmailCommand request, CancellationToken cancellationToken)
     {
         var slipResp = await _mediator.Send(new GetSalarySlipByIdQuery(request.SalarySlipId), cancellationToken);
-        if (!slipResp.IsSuccess || slipResp.Value is null)
+        if (!slipResp.Success || slipResp.Data is null)
             return ApiResponse<bool>.FailureResponse("Salary slip not found.");
 
-        var slip = slipResp.Value;
+        var slip = slipResp.Data;
 
         // Simple CSV-like text for PDF body
         var csv = $"Payslip for: {slip.EmployeeName}\nMonth: {slip.Month}\nBase: {slip.BaseSalary:C}\nDeductions: {slip.Deductions:C}\nNet: {slip.NetPay:C}";
