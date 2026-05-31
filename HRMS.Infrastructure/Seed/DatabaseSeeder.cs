@@ -46,6 +46,24 @@ public static class DatabaseSeeder
         var roles = await db.Roles.ToDictionaryAsync(r => r.Name, cancellationToken);
         var permissions = await db.Permissions.ToDictionaryAsync(p => p.Name, cancellationToken);
 
+        if (!await db.OrganizationPolicies.AnyAsync(cancellationToken))
+        {
+            db.OrganizationPolicies.Add(new OrganizationPolicy
+            {
+                OrganizationName = "HRMS Demo Company",
+                WorkingDays = "Monday-Friday",
+                OfficeHours = "09:00-18:00",
+                TimeZone = "UTC",
+                CurrencyCode = "USD",
+                AttendancePolicy = "Standard",
+                LeavePolicy = "Standard",
+                PayrollPolicy = "Standard",
+                IsActive = true
+            });
+
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
         if (!await db.Users.AnyAsync(cancellationToken))
         {
             var adminUser = new User
