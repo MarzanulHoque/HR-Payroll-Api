@@ -3,6 +3,7 @@ using HRMS.Application.Common.Interfaces;
 using HRMS.Domain.Entities;
 using HRMS.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
+// SignalR broadcasting is handled in the API layer to avoid coupling Infrastructure -> API
 
 namespace HRMS.Infrastructure.Services;
 
@@ -32,7 +33,9 @@ public class NotificationService : INotificationService
 
         // send email notification as well (noop in dev)
         await _emailService.SendEmailAsync(recipient, title, body);
+
     }
+
 
     public async Task<List<NotificationDto>> GetForRecipientAsync(string recipient, int page = 1, int pageSize = 25)
     {

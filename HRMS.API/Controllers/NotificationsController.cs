@@ -1,8 +1,10 @@
 using System.Threading.Tasks;
 using HRMS.Application.Common.Interfaces;
+using HRMS.API.Authorization;
 using HRMS.Application.Common.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HRMS.API.Controllers;
@@ -13,16 +15,34 @@ namespace HRMS.API.Controllers;
 public class NotificationsController : ControllerBase
 {
     private readonly INotificationService _notificationService;
+    private readonly Microsoft.AspNetCore.SignalR.IHubContext<HRMS.API.Hubs.NotificationsHub>? _hubContext;
 
-    public NotificationsController(INotificationService notificationService)
+    public NotificationsController(INotificationService notificationService, Microsoft.AspNetCore.SignalR.IHubContext<HRMS.API.Hubs.NotificationsHub>? hubContext = null)
     {
         _notificationService = notificationService;
+        _hubContext = hubContext;
     }
 
     [HttpPost]
+    [PermissionAuthorize("notification.send")]
     public async Task<IActionResult> Create([FromBody] CreateNotificationRequest req)
     {
         await _notificationService.CreateAsync(req.Title, req.Body, req.Recipient);
+
+        // broadcast via SignalR to recipient if hub is available
+        try
+        {
+            var dto = new NotificationDto(Guid.NewGuid(), req.Title, req.Body, req.Recipient, false, DateTime.UtcNow);
+            if (_hubContext != null)
+            {
+                await _hubContext.Clients.User(req.Recipient).SendAsync("ReceiveNotification", dto);
+            }
+        }
+        catch
+        {
+            // swallow - best-effort
+        }
+
         return NoContent();
     }
 

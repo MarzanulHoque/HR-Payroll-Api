@@ -17,7 +17,8 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
     {
         var claims = new[] {
             new Claim(ClaimTypes.NameIdentifier, IntegrationTests.UserId.ToString()),
-            new Claim("permission", "payroll.generate")
+            new Claim("permission", "payroll.generate"),
+            new Claim("permission", "notification.send")
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
