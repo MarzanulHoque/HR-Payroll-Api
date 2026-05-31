@@ -56,4 +56,59 @@ public class RefreshTokenCommandHandlerTests
         Assert.NotNull(existingToken.Revoked);
         contextMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [Fact]
+    public async Task Handle_DetectsReuseAndRevokesAll_WhenTokenWasReplaced()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "user@hrms.local",
+            FirstName = "Test",
+            PasswordHash = "hash",
+            IsActive = true
+        };
+
+        var role = new Role { Id = Guid.NewGuid(), Name = "User" };
+        user.UserRoles.Add(new UserRole { Role = role, RoleId = role.Id, User = user, UserId = user.Id });
+
+        var oldToken = new RefreshToken
+        {
+            Token = "old-refresh-token",
+            Expires = DateTime.UtcNow.AddDays(1),
+            Revoked = DateTime.UtcNow.AddMinutes(-10),
+            ReplacedByToken = "new-refresh-token",
+            User = user,
+            UserId = user.Id
+        };
+
+        var activeToken = new RefreshToken
+        {
+            Token = "active-refresh-token",
+            Expires = DateTime.UtcNow.AddDays(1),
+            User = user,
+            UserId = user.Id
+        };
+
+        var tokens = new List<RefreshToken> { oldToken, activeToken };
+
+        var contextMock = new Mock<IApplicationDbContext>();
+        contextMock.Setup(x => x.RefreshTokens).ReturnsDbSet(tokens);
+        contextMock.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var tokenServiceMock = new Mock<ITokenService>();
+
+        var handler = new RefreshTokenCommandHandler(contextMock.Object, tokenServiceMock.Object);
+
+        // Act
+        var result = await handler.Handle(new RefreshTokenCommand("old-refresh-token"), CancellationToken.None);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Contains("reuse", result.Message, StringComparison.OrdinalIgnoreCase);
+        // activeToken should now be revoked
+        Assert.NotNull(activeToken.Revoked);
+        contextMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+    }
 }
