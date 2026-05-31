@@ -11,11 +11,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
 {
     private readonly IApplicationDbContext _context;
     private readonly ITokenService _tokenService;
+    private readonly IAuditService _auditService;
 
-    public LoginCommandHandler(IApplicationDbContext context, ITokenService tokenService)
+    public LoginCommandHandler(IApplicationDbContext context, ITokenService tokenService, IAuditService auditService)
     {
         _context = context;
         _tokenService = tokenService;
+        _auditService = auditService;
     }
 
     public async Task<ApiResponse<AuthResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -28,12 +30,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
 
         if (user == null || !user.IsActive)
         {
+            await _auditService.RecordAsync("LoginFailed", "User", null, request.Email, null, null, null);
             return ApiResponse<AuthResponse>.FailureResponse("Invalid credentials or inactive account.");
         }
 
         // 2. Verify password
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
+            await _auditService.RecordAsync("LoginFailed", "User", user.Id, request.Email, null, null, null);
             return ApiResponse<AuthResponse>.FailureResponse("Invalid credentials.");
         }
 
@@ -51,6 +55,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
         };
         _context.RefreshTokens.Add(refreshToken);
         await _context.SaveChangesAsync(cancellationToken);
+
+        // record successful login
+        await _auditService.RecordAsync("LoginSuccess", "User", user.Id, user.Email, null, null, null);
 
         // 5. Response
         var authResponse = new AuthResponse

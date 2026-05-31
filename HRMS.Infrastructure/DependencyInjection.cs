@@ -19,6 +19,8 @@ public static class DependencyInjection
         services.AddScoped<IPermissionService, PermissionService>();
         // Register email service as No-Op by default (safe for tests/dev).
         services.AddScoped<IEmailService, NoOpEmailService>();
+        // Register audit service
+        services.AddScoped<IAuditService, AuditService>();
 
         return services;
     }

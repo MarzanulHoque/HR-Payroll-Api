@@ -22,6 +22,7 @@ public interface IApplicationDbContext
     DbSet<LeaveRequest> LeaveRequests { get; }
     DbSet<SalarySlip> SalarySlips { get; }
     DbSet<OrganizationPolicy> OrganizationPolicies { get; }
+    DbSet<AuditLog> AuditLogs { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

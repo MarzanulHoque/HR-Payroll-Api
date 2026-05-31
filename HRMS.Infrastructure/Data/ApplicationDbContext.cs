@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<LeaveRequest> LeaveRequests { get; set; }
     public DbSet<SalarySlip> SalarySlips { get; set; }
     public DbSet<OrganizationPolicy> OrganizationPolicies { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
