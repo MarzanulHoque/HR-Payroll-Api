@@ -3,4 +3,14 @@ using MediatR;
 
 namespace HRMS.Application.Payroll.Queries.GetSalarySlips;
 
-public record GetAllSalarySlipsQuery : IRequest<ApiResponse<List<SalarySlipDto>>>;
+public record SalarySlipsQueryParameters
+(
+	string? Month,
+	string? Search,
+	string? SortBy,
+	bool Desc = false,
+	int Page = 1,
+	int PageSize = 25
+);
+
+public record GetAllSalarySlipsQuery(SalarySlipsQueryParameters Parameters) : IRequest<ApiResponse<List<SalarySlipDto>>>;
