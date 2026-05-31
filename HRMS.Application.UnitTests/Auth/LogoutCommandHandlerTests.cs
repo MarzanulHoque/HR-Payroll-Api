@@ -52,7 +52,7 @@ public class LogoutCommandHandlerTests
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal(true, result.Data);
+        Assert.True(result.Data);
         contextMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 }
