@@ -21,6 +21,7 @@ public interface IApplicationDbContext
     DbSet<AttendanceRecord> AttendanceRecords { get; }
     DbSet<LeaveRequest> LeaveRequests { get; }
     DbSet<SalarySlip> SalarySlips { get; }
+    DbSet<OrganizationPolicy> OrganizationPolicies { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
