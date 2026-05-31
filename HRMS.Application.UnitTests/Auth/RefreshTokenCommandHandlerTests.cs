@@ -101,13 +101,6 @@ public class RefreshTokenCommandHandlerTests
 
         var handler = new RefreshTokenCommandHandler(contextMock.Object, tokenServiceMock.Object);
 
-        static string Hash(string t)
-        {
-            using var sha = System.Security.Cryptography.SHA256.Create();
-            var bytes = System.Text.Encoding.UTF8.GetBytes(t);
-            return Convert.ToHexString(sha.ComputeHash(bytes));
-        }
-
         // Act
         var result = await handler.Handle(new RefreshTokenCommand("old-refresh-token"), CancellationToken.None);
 
@@ -117,5 +110,11 @@ public class RefreshTokenCommandHandlerTests
         // activeToken should now be revoked
         Assert.NotNull(activeToken.Revoked);
         contextMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+    }
+    private static string Hash(string t)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(t);
+        return Convert.ToHexString(sha.ComputeHash(bytes));
     }
 }

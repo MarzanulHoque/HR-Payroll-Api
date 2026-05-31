@@ -7,6 +7,8 @@ using HRMS.Application.Employees.Queries.GetEmployees;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System.Text;
 
 namespace HRMS.API.Controllers;
 
@@ -60,5 +62,37 @@ public class EmployeesController : ControllerBase
     {
         var result = await _mediator.Send(new DeleteEmployeeCommand(id));
         return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    [HttpPost("import")]
+    public async Task<ActionResult<ApiResponse<int>>> ImportEmployees(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse<int>.FailureResponse("No file uploaded."));
+
+        var created = 0;
+        using var stream = file.OpenReadStream();
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        var header = await reader.ReadLineAsync(); // consume header
+        string? line;
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            var cols = line.Split(',');
+            if (cols.Length < 5) continue;
+
+            var cmd = new CreateEmployeeCommand(
+                cols[0].Trim(),
+                cols[1].Trim(),
+                cols[2].Trim(),
+                cols[3].Trim(),
+                cols[4].Trim()
+            );
+
+            var res = await _mediator.Send(cmd);
+            if (res.Success) created++;
+        }
+
+        return ApiResponse<int>.SuccessResponse(created, $"Imported {created} employees.");
     }
 }
