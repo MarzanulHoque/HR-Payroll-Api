@@ -25,6 +25,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Ensure the app does not run Development-only startup seeds during tests
+        builder.UseEnvironment("Testing");
+
         builder.ConfigureServices(services =>
         {
             // replace DbContext to use a shared in-memory SQLite connection so EF provider matches the app
@@ -53,17 +56,37 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
 
-            // seed
+            // seed the set of users/roles/permissions that other initialization code expects
             var permission = new Permission { Id = _permissionId, Name = "payroll.generate" };
             var role = new Role { Id = _roleId, Name = "Admin" };
-            var user = new User { Id = _userId, Email = "inttest@example.com", FirstName = "IntTest" };
+
+            var adminUser = new User { Id = _userId, Email = "admin@hrms.local", FirstName = "System", LastName = "Admin" };
+            var hrUser = new User { Email = "hr.admin@hrms.local", FirstName = "Hannah", LastName = "Reed" };
+            var payrollUser = new User { Email = "payroll@hrms.local", FirstName = "Paul", LastName = "Wright" };
+            var managerUser = new User { Email = "manager@hrms.local", FirstName = "Maya", LastName = "Patel" };
+
+            var employeeUsers = new[]
+            {
+                new User { Email = "employee1@hrms.local", FirstName = "Alice", LastName = "Johnson" },
+                new User { Email = "employee2@hrms.local", FirstName = "Bob", LastName = "Smith" },
+                new User { Email = "employee3@hrms.local", FirstName = "Clara", LastName = "Williams" },
+                new User { Email = "employee4@hrms.local", FirstName = "David", LastName = "Brown" },
+                new User { Email = "employee5@hrms.local", FirstName = "Eva", LastName = "Green" },
+                new User { Email = "employee6@hrms.local", FirstName = "Frank", LastName = "Miller" },
+                new User { Email = "employee7@hrms.local", FirstName = "Grace", LastName = "Lee" }
+            };
 
             db.Permissions.Add(permission);
             db.Roles.Add(role);
-            db.Users.Add(user);
+            db.Users.AddRange(adminUser, hrUser, payrollUser, managerUser);
+            db.Users.AddRange(employeeUsers);
             db.RolePermissions.Add(new RolePermission { RoleId = _roleId, PermissionId = _permissionId });
             db.UserRoles.Add(new UserRole { UserId = _userId, RoleId = _roleId });
             db.SaveChanges();
+
+            // Diagnostic: print seeded users to test output to verify presence of admin@hrms.local
+            var seeded = db.Users.Select(u => u.Email).ToList();
+            Console.WriteLine("[TestSeed] Seeded users: " + string.Join(", ", seeded));
         });
     }
 }

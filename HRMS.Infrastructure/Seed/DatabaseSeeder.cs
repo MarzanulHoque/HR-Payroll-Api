@@ -114,22 +114,58 @@ public static class DatabaseSeeder
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        var users = await db.Users.ToDictionaryAsync(u => u.Email, cancellationToken);
+        // Ensure expected users exist (helps tests which seed partially)
+        var expectedUserEmails = new[]
+        {
+            "admin@hrms.local",
+            "hr.admin@hrms.local",
+            "payroll@hrms.local",
+            "manager@hrms.local",
+            "employee1@hrms.local",
+            "employee2@hrms.local",
+            "employee3@hrms.local",
+            "employee4@hrms.local",
+            "employee5@hrms.local",
+            "employee6@hrms.local",
+            "employee7@hrms.local"
+        };
+
+        foreach (var email in expectedUserEmails)
+        {
+            if (!await db.Users.AnyAsync(u => u.Email == email, cancellationToken))
+            {
+                db.Users.Add(new User { Email = email, PasswordHash = samplePasswordHash, FirstName = email.Split('@')[0] });
+            }
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
 
         if (!await db.Set<UserRole>().AnyAsync(cancellationToken))
         {
+            var adminId = (await db.Users.SingleAsync(u => u.Email == "admin@hrms.local", cancellationToken)).Id;
+            var hrId = (await db.Users.SingleAsync(u => u.Email == "hr.admin@hrms.local", cancellationToken)).Id;
+            var payrollId = (await db.Users.SingleAsync(u => u.Email == "payroll@hrms.local", cancellationToken)).Id;
+            var managerId = (await db.Users.SingleAsync(u => u.Email == "manager@hrms.local", cancellationToken)).Id;
+            var e1 = (await db.Users.SingleAsync(u => u.Email == "employee1@hrms.local", cancellationToken)).Id;
+            var e2 = (await db.Users.SingleAsync(u => u.Email == "employee2@hrms.local", cancellationToken)).Id;
+            var e3 = (await db.Users.SingleAsync(u => u.Email == "employee3@hrms.local", cancellationToken)).Id;
+            var e4 = (await db.Users.SingleAsync(u => u.Email == "employee4@hrms.local", cancellationToken)).Id;
+            var e5 = (await db.Users.SingleAsync(u => u.Email == "employee5@hrms.local", cancellationToken)).Id;
+            var e6 = (await db.Users.SingleAsync(u => u.Email == "employee6@hrms.local", cancellationToken)).Id;
+            var e7 = (await db.Users.SingleAsync(u => u.Email == "employee7@hrms.local", cancellationToken)).Id;
+
             db.AddRange(
-                new UserRole { UserId = users["admin@hrms.local"].Id, RoleId = roles["Admin"].Id },
-                new UserRole { UserId = users["hr.admin@hrms.local"].Id, RoleId = roles["HR"].Id },
-                new UserRole { UserId = users["payroll@hrms.local"].Id, RoleId = roles["Payroll"].Id },
-                new UserRole { UserId = users["manager@hrms.local"].Id, RoleId = roles["Manager"].Id },
-                new UserRole { UserId = users["employee1@hrms.local"].Id, RoleId = roles["Employee"].Id },
-                new UserRole { UserId = users["employee2@hrms.local"].Id, RoleId = roles["Employee"].Id },
-                new UserRole { UserId = users["employee3@hrms.local"].Id, RoleId = roles["Employee"].Id },
-                new UserRole { UserId = users["employee4@hrms.local"].Id, RoleId = roles["Employee"].Id },
-                new UserRole { UserId = users["employee5@hrms.local"].Id, RoleId = roles["Employee"].Id },
-                new UserRole { UserId = users["employee6@hrms.local"].Id, RoleId = roles["Employee"].Id },
-                new UserRole { UserId = users["employee7@hrms.local"].Id, RoleId = roles["Employee"].Id });
+                new UserRole { UserId = adminId, RoleId = roles["Admin"].Id },
+                new UserRole { UserId = hrId, RoleId = roles["HR"].Id },
+                new UserRole { UserId = payrollId, RoleId = roles["Payroll"].Id },
+                new UserRole { UserId = managerId, RoleId = roles["Manager"].Id },
+                new UserRole { UserId = e1, RoleId = roles["Employee"].Id },
+                new UserRole { UserId = e2, RoleId = roles["Employee"].Id },
+                new UserRole { UserId = e3, RoleId = roles["Employee"].Id },
+                new UserRole { UserId = e4, RoleId = roles["Employee"].Id },
+                new UserRole { UserId = e5, RoleId = roles["Employee"].Id },
+                new UserRole { UserId = e6, RoleId = roles["Employee"].Id },
+                new UserRole { UserId = e7, RoleId = roles["Employee"].Id });
 
             await db.SaveChangesAsync(cancellationToken);
         }
@@ -231,7 +267,7 @@ public static class DatabaseSeeder
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        var employees = await db.Employees.ToDictionaryAsync(e => e.Email, cancellationToken);
+        // Use direct queries for employees to avoid brittle dictionary lookups in tests
 
         if (!await db.Departments.AnyAsync(cancellationToken))
         {
@@ -246,7 +282,7 @@ public static class DatabaseSeeder
                 Name = "Human Resources",
                 Description = "Employee lifecycle, policy, and staffing",
                 ParentDepartmentId = corporate.Id,
-                ManagerId = employees["hannah.reed@hrms.local"].Id
+                ManagerId = (await db.Employees.SingleAsync(e => e.Email == "hannah.reed@hrms.local", cancellationToken)).Id
             };
 
             var finance = new Department
@@ -254,7 +290,7 @@ public static class DatabaseSeeder
                 Name = "Finance",
                 Description = "Accounts, planning, and salary operations",
                 ParentDepartmentId = corporate.Id,
-                ManagerId = employees["paul.wright@hrms.local"].Id
+                ManagerId = (await db.Employees.SingleAsync(e => e.Email == "paul.wright@hrms.local", cancellationToken)).Id
             };
 
             var payroll = new Department
@@ -262,7 +298,7 @@ public static class DatabaseSeeder
                 Name = "Payroll",
                 Description = "Monthly payroll processing and payslips",
                 ParentDepartmentId = finance.Id,
-                ManagerId = employees["employee3@hrms.local"].Id
+                ManagerId = (await db.Employees.SingleAsync(e => e.Email == "employee3@hrms.local", cancellationToken)).Id
             };
 
             var operations = new Department
@@ -270,7 +306,7 @@ public static class DatabaseSeeder
                 Name = "Operations",
                 Description = "Day-to-day service delivery and coordination",
                 ParentDepartmentId = corporate.Id,
-                ManagerId = employees["employee2@hrms.local"].Id
+                ManagerId = (await db.Employees.SingleAsync(e => e.Email == "employee2@hrms.local", cancellationToken)).Id
             };
 
             var technology = new Department
@@ -278,7 +314,7 @@ public static class DatabaseSeeder
                 Name = "Technology",
                 Description = "Software delivery and technical support",
                 ParentDepartmentId = corporate.Id,
-                ManagerId = employees["employee1@hrms.local"].Id
+                ManagerId = (await db.Employees.SingleAsync(e => e.Email == "employee1@hrms.local", cancellationToken)).Id
             };
 
             var compliance = new Department
@@ -286,7 +322,7 @@ public static class DatabaseSeeder
                 Name = "Compliance",
                 Description = "Policy compliance and audit readiness",
                 ParentDepartmentId = corporate.Id,
-                ManagerId = employees["employee5@hrms.local"].Id
+                ManagerId = (await db.Employees.SingleAsync(e => e.Email == "employee5@hrms.local", cancellationToken)).Id
             };
 
             var support = new Department
@@ -294,7 +330,7 @@ public static class DatabaseSeeder
                 Name = "Support",
                 Description = "Internal support and service requests",
                 ParentDepartmentId = corporate.Id,
-                ManagerId = employees["employee6@hrms.local"].Id
+                ManagerId = (await db.Employees.SingleAsync(e => e.Email == "employee6@hrms.local", cancellationToken)).Id
             };
 
             var recruitment = new Department
@@ -302,7 +338,7 @@ public static class DatabaseSeeder
                 Name = "Recruitment",
                 Description = "Hiring and onboarding coordination",
                 ParentDepartmentId = humanResources.Id,
-                ManagerId = employees["employee7@hrms.local"].Id
+                ManagerId = (await db.Employees.SingleAsync(e => e.Email == "employee7@hrms.local", cancellationToken)).Id
             };
 
             db.Departments.AddRange(corporate, humanResources, finance, payroll, operations, technology, compliance, support, recruitment);
@@ -318,61 +354,61 @@ public static class DatabaseSeeder
                 {
                     Title = "Director",
                     Description = "Executive owner of the organization",
-                    DepartmentId = departments["Corporate"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Corporate", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "HR Manager",
                     Description = "Leads HR operations",
-                    DepartmentId = departments["Human Resources"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Human Resources", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "Finance Lead",
                     Description = "Oversees finance activities",
-                    DepartmentId = departments["Finance"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Finance", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "Payroll Officer",
                     Description = "Processes salary runs",
-                    DepartmentId = departments["Payroll"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Payroll", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "Operations Specialist",
                     Description = "Coordinates operational tasks",
-                    DepartmentId = departments["Operations"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Operations", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "Software Engineer",
                     Description = "Builds internal applications",
-                    DepartmentId = departments["Technology"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Technology", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "Recruitment Specialist",
                     Description = "Supports hiring and onboarding",
-                    DepartmentId = departments["Human Resources"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Human Resources", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "Compliance Analyst",
                     Description = "Reviews policy and audit controls",
-                    DepartmentId = departments["Compliance"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Compliance", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "Support Associate",
                     Description = "Handles internal support requests",
-                    DepartmentId = departments["Support"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Support", cancellationToken)).Id
                 },
                 new Designation
                 {
                     Title = "Recruiter",
                     Description = "Coordinates hiring and interviews",
-                    DepartmentId = departments["Recruitment"].Id
+                    DepartmentId = (await db.Departments.SingleAsync(d => d.Name == "Recruitment", cancellationToken)).Id
                 });
 
             await db.SaveChangesAsync(cancellationToken);
@@ -424,18 +460,21 @@ public static class DatabaseSeeder
 
         if (!await db.RefreshTokens.AnyAsync(cancellationToken))
         {
+            var adminId = (await db.Users.SingleAsync(u => u.Email == "admin@hrms.local", cancellationToken)).Id;
+            var hrId = (await db.Users.SingleAsync(u => u.Email == "hr.admin@hrms.local", cancellationToken)).Id;
+
             db.RefreshTokens.AddRange(
                 new RefreshToken
                 {
                     Token = Guid.NewGuid().ToString("N"),
                     Expires = DateTime.UtcNow.AddDays(7),
-                    UserId = users["admin@hrms.local"].Id
+                    UserId = adminId
                 },
                 new RefreshToken
                 {
                     Token = Guid.NewGuid().ToString("N"),
                     Expires = DateTime.UtcNow.AddDays(7),
-                    UserId = users["hr.admin@hrms.local"].Id
+                    UserId = hrId
                 });
 
             await db.SaveChangesAsync(cancellationToken);
@@ -447,7 +486,7 @@ public static class DatabaseSeeder
             db.AttendanceRecords.AddRange(
                 new AttendanceRecord
                 {
-                    EmployeeId = employees["employee1@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee1@hrms.local", cancellationToken)).Id,
                     Date = attendanceDate,
                     ClockInTime = attendanceDate.AddHours(9).AddMinutes(5),
                     ClockOutTime = attendanceDate.AddHours(18).AddMinutes(2),
@@ -455,7 +494,7 @@ public static class DatabaseSeeder
                 },
                 new AttendanceRecord
                 {
-                    EmployeeId = employees["employee2@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee2@hrms.local", cancellationToken)).Id,
                     Date = attendanceDate,
                     ClockInTime = attendanceDate.AddHours(9).AddMinutes(20),
                     ClockOutTime = attendanceDate.AddHours(18).AddMinutes(10),
@@ -463,7 +502,7 @@ public static class DatabaseSeeder
                 },
                 new AttendanceRecord
                 {
-                    EmployeeId = employees["employee3@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee3@hrms.local", cancellationToken)).Id,
                     Date = attendanceDate,
                     ClockInTime = attendanceDate.AddHours(8).AddMinutes(55),
                     ClockOutTime = attendanceDate.AddHours(17).AddMinutes(45),
@@ -471,7 +510,7 @@ public static class DatabaseSeeder
                 },
                 new AttendanceRecord
                 {
-                    EmployeeId = employees["employee4@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee4@hrms.local", cancellationToken)).Id,
                     Date = attendanceDate,
                     ClockInTime = attendanceDate.AddHours(9).AddMinutes(10),
                     ClockOutTime = attendanceDate.AddHours(18),
@@ -479,7 +518,7 @@ public static class DatabaseSeeder
                 },
                 new AttendanceRecord
                 {
-                    EmployeeId = employees["employee5@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee5@hrms.local", cancellationToken)).Id,
                     Date = attendanceDate,
                     ClockInTime = attendanceDate.AddHours(9).AddMinutes(2),
                     ClockOutTime = attendanceDate.AddHours(17).AddMinutes(50),
@@ -487,7 +526,7 @@ public static class DatabaseSeeder
                 },
                 new AttendanceRecord
                 {
-                    EmployeeId = employees["employee6@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee6@hrms.local", cancellationToken)).Id,
                     Date = attendanceDate,
                     ClockInTime = attendanceDate.AddHours(9).AddMinutes(30),
                     ClockOutTime = attendanceDate.AddHours(18).AddMinutes(5),
@@ -495,7 +534,7 @@ public static class DatabaseSeeder
                 },
                 new AttendanceRecord
                 {
-                    EmployeeId = employees["employee7@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee7@hrms.local", cancellationToken)).Id,
                     Date = attendanceDate,
                     ClockInTime = attendanceDate.AddHours(8).AddMinutes(50),
                     ClockOutTime = attendanceDate.AddHours(17).AddMinutes(40),
@@ -511,7 +550,7 @@ public static class DatabaseSeeder
             db.LeaveRequests.AddRange(
                 new LeaveRequest
                 {
-                    EmployeeId = employees["employee1@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee1@hrms.local", cancellationToken)).Id,
                     LeaveType = "Sick",
                     StartDate = today.AddDays(2),
                     EndDate = today.AddDays(3),
@@ -520,7 +559,7 @@ public static class DatabaseSeeder
                 },
                 new LeaveRequest
                 {
-                    EmployeeId = employees["employee2@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee2@hrms.local", cancellationToken)).Id,
                     LeaveType = "Vacation",
                     StartDate = today.AddDays(-10),
                     EndDate = today.AddDays(-8),
@@ -529,7 +568,7 @@ public static class DatabaseSeeder
                 },
                 new LeaveRequest
                 {
-                    EmployeeId = employees["employee3@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee3@hrms.local", cancellationToken)).Id,
                     LeaveType = "Personal",
                     StartDate = today.AddDays(5),
                     EndDate = today.AddDays(5),
@@ -538,7 +577,7 @@ public static class DatabaseSeeder
                 },
                 new LeaveRequest
                 {
-                    EmployeeId = employees["employee5@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee5@hrms.local", cancellationToken)).Id,
                     LeaveType = "Vacation",
                     StartDate = today.AddDays(14),
                     EndDate = today.AddDays(16),
@@ -547,7 +586,7 @@ public static class DatabaseSeeder
                 },
                 new LeaveRequest
                 {
-                    EmployeeId = employees["employee6@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee6@hrms.local", cancellationToken)).Id,
                     LeaveType = "Sick",
                     StartDate = today.AddDays(-4),
                     EndDate = today.AddDays(-3),
@@ -556,7 +595,7 @@ public static class DatabaseSeeder
                 },
                 new LeaveRequest
                 {
-                    EmployeeId = employees["employee7@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee7@hrms.local", cancellationToken)).Id,
                     LeaveType = "Personal",
                     StartDate = today.AddDays(8),
                     EndDate = today.AddDays(8),
@@ -572,7 +611,7 @@ public static class DatabaseSeeder
             db.SalarySlips.AddRange(
                 new SalarySlip
                 {
-                    EmployeeId = employees["employee1@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee1@hrms.local", cancellationToken)).Id,
                     Month = "May 2026",
                     BaseSalary = 6500m,
                     Deductions = 250m,
@@ -581,7 +620,7 @@ public static class DatabaseSeeder
                 },
                 new SalarySlip
                 {
-                    EmployeeId = employees["employee2@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee2@hrms.local", cancellationToken)).Id,
                     Month = "May 2026",
                     BaseSalary = 5800m,
                     Deductions = 150m,
@@ -590,7 +629,7 @@ public static class DatabaseSeeder
                 },
                 new SalarySlip
                 {
-                    EmployeeId = employees["employee3@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee3@hrms.local", cancellationToken)).Id,
                     Month = "May 2026",
                     BaseSalary = 7200m,
                     Deductions = 300m,
@@ -599,7 +638,7 @@ public static class DatabaseSeeder
                 },
                 new SalarySlip
                 {
-                    EmployeeId = employees["employee4@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee4@hrms.local", cancellationToken)).Id,
                     Month = "May 2026",
                     BaseSalary = 6100m,
                     Deductions = 200m,
@@ -608,7 +647,7 @@ public static class DatabaseSeeder
                 },
                 new SalarySlip
                 {
-                    EmployeeId = employees["employee5@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee5@hrms.local", cancellationToken)).Id,
                     Month = "May 2026",
                     BaseSalary = 5600m,
                     Deductions = 120m,
@@ -617,7 +656,7 @@ public static class DatabaseSeeder
                 },
                 new SalarySlip
                 {
-                    EmployeeId = employees["employee6@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee6@hrms.local", cancellationToken)).Id,
                     Month = "May 2026",
                     BaseSalary = 5400m,
                     Deductions = 100m,
@@ -626,7 +665,7 @@ public static class DatabaseSeeder
                 },
                 new SalarySlip
                 {
-                    EmployeeId = employees["employee7@hrms.local"].Id,
+                    EmployeeId = (await db.Employees.SingleAsync(e => e.Email == "employee7@hrms.local", cancellationToken)).Id,
                     Month = "May 2026",
                     BaseSalary = 5900m,
                     Deductions = 180m,
