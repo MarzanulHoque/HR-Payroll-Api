@@ -34,7 +34,27 @@ public class ReportService : IReportService
         var sb = new StringBuilder();
         sb.AppendLine("EmployeeId,Date,ClockIn,ClockOut,Status");
 
-        var list = _db.AttendanceRecords.Where(a => a.Date.ToString("MMMM yyyy") == month).ToList();
+        // Determine target month/year. Accept formats: "MMMM yyyy" (June 2026) or "yyyy-MM" (2026-06).
+        var target = DateTime.UtcNow;
+        if (!string.IsNullOrWhiteSpace(month))
+        {
+            if (!DateTime.TryParseExact(month, "MMMM yyyy", CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out target))
+            {
+                if (!DateTime.TryParseExact(month, "yyyy-MM", CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out target))
+                {
+                    // fallback: try general parse
+                    if (!DateTime.TryParse(month, out target))
+                    {
+                        target = DateTime.UtcNow;
+                    }
+                }
+            }
+        }
+
+        var year = target.Year;
+        var monthNum = target.Month;
+
+        var list = _db.AttendanceRecords.Where(a => a.Date.Year == year && a.Date.Month == monthNum).ToList();
         foreach (var a in list)
         {
             sb.AppendLine($"{a.EmployeeId},{a.Date:yyyy-MM-dd},{a.ClockInTime:HH:mm},{(a.ClockOutTime.HasValue ? a.ClockOutTime.Value.ToString("HH:mm") : string.Empty)},{a.Status}");

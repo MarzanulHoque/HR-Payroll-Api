@@ -25,8 +25,9 @@ public class ReportsController : ControllerBase
     [HttpGet("attendance/csv")]
     public async Task<IActionResult> AttendanceCsv([FromQuery] string month)
     {
-        var csv = await _reportService.GenerateAttendanceCsvAsync(month);
-        var fileName = $"attendance_{month.Replace(' ', '_')}.csv";
+        var useMonth = string.IsNullOrWhiteSpace(month) ? DateTime.UtcNow.ToString("MMMM yyyy") : month;
+        var csv = await _reportService.GenerateAttendanceCsvAsync(useMonth);
+        var fileName = $"attendance_{useMonth.Replace(' ', '_')}.csv";
         return File(csv, "text/csv", fileName);
     }
 }
