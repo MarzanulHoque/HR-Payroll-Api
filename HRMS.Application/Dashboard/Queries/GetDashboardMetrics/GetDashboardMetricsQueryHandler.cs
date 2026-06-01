@@ -17,6 +17,8 @@ public class GetDashboardMetricsQueryHandler : IRequestHandler<GetDashboardMetri
     public async Task<ApiResponse<DashboardMetricsDto>> Handle(GetDashboardMetricsQuery request, CancellationToken cancellationToken)
     {
         var today = DateTime.UtcNow.Date;
+        var monthStart = new DateTime(today.Year, today.Month, 1);
+        var monthEnd = monthStart.AddMonths(1);
 
         var totalEmployees = await _context.Employees.CountAsync(cancellationToken);
         
@@ -26,11 +28,20 @@ public class GetDashboardMetricsQueryHandler : IRequestHandler<GetDashboardMetri
         var attendanceToday = await _context.AttendanceRecords
             .CountAsync(a => a.Date == today, cancellationToken);
 
+        var payrollExpense = 0m;
+        if (_context.SalarySlips != null)
+        {
+            payrollExpense = await _context.SalarySlips
+                .Where(s => s.CreatedAt >= monthStart && s.CreatedAt < monthEnd)
+                .SumAsync(s => (decimal?)s.NetPay, cancellationToken) ?? 0m;
+        }
+
         var metrics = new DashboardMetricsDto
         {
             TotalEmployees = totalEmployees,
             PendingLeaveRequests = pendingLeaves,
-            TotalAttendanceToday = attendanceToday
+            TotalAttendanceToday = attendanceToday,
+            PayrollExpense = payrollExpense
         };
 
         return ApiResponse<DashboardMetricsDto>.SuccessResponse(metrics);

@@ -4,10 +4,12 @@ using HRMS.Application.Payroll.Queries.GetSalarySlips;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using HRMS.Application.Payroll.Commands.LockPayroll;
 using HRMS.Application.Payroll.Commands.AddSalaryIncrement;
 using HRMS.Application.Payroll.Commands.AddPayrollAdjustment;
 using System;
+using HRMS.API.Hubs;
 
 namespace HRMS.API.Controllers;
 
@@ -17,10 +19,12 @@ namespace HRMS.API.Controllers;
 public class PayrollController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IHubContext<NotificationsHub>? _hubContext;
 
-    public PayrollController(IMediator mediator)
+    public PayrollController(IMediator mediator, IHubContext<NotificationsHub>? hubContext = null)
     {
         _mediator = mediator;
+        _hubContext = hubContext;
     }
 
     [HttpPost("generate")]
@@ -29,6 +33,7 @@ public class PayrollController : ControllerBase
         var result = await _mediator.Send(command);
         if (result.Success)
         {
+            await BroadcastDashboardUpdate("payroll.generate", result.Data);
             return Ok(result);
         }
         return BadRequest(result);
@@ -124,6 +129,7 @@ public class PayrollController : ControllerBase
 
         var resp = await _mediator.Send(new LockPayrollCommand(request.Month));
         if (!resp.Success) return BadRequest(resp);
+        await BroadcastDashboardUpdate("payroll.lock", request.Month);
         return Ok(resp);
     }
 
@@ -136,6 +142,7 @@ public class PayrollController : ControllerBase
 
         var resp = await _mediator.Send(new AddSalaryIncrementCommand(request.EmployeeId, request.Amount, request.EffectiveFrom, request.Reason));
         if (!resp.Success) return BadRequest(resp);
+        await BroadcastDashboardUpdate("payroll.increment", resp.Data);
         return Ok(resp);
     }
 
@@ -148,7 +155,30 @@ public class PayrollController : ControllerBase
 
         var resp = await _mediator.Send(new AddPayrollAdjustmentCommand(request.SalarySlipId, request.Amount, request.Reason));
         if (!resp.Success) return BadRequest(resp);
+        await BroadcastDashboardUpdate("payroll.adjustment", resp.Data);
         return Ok(resp);
+    }
+
+    private async Task BroadcastDashboardUpdate(string source, object entityId)
+    {
+        if (_hubContext == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _hubContext.Clients.All.SendAsync("DashboardUpdated", new
+            {
+                Source = source,
+                EntityId = entityId,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch
+        {
+            // best-effort only
+        }
     }
 
     private static byte[] GenerateSimplePdf(string text)
