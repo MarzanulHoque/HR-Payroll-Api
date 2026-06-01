@@ -42,15 +42,15 @@ public class GetDepartmentsTreeQueryHandler : IRequestHandler<GetDepartmentsTree
         var parentMap = await _context.Departments.AsNoTracking().Select(d => new { d.Id, d.ParentDepartmentId }).ToListAsync(cancellationToken);
         var parentLookup = parentMap.ToDictionary(x => x.Id, x => x.ParentDepartmentId);
 
-        foreach (var dept in depts)
+        foreach (var dto in deptDtos)
         {
-            if (parentLookup.TryGetValue(dept.Id, out var parentId) && parentId.HasValue && lookup.TryGetValue(parentId.Value, out var parent))
+            if (parentLookup.TryGetValue(dto.Id, out var parentId) && parentId.HasValue && lookup.TryGetValue(parentId.Value, out var parent))
             {
-                parent.Children.Add(dept);
+                parent.Children.Add(dto);
             }
             else
             {
-                roots.Add(dept);
+                roots.Add(dto);
             }
         }
 

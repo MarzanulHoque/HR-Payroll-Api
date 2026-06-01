@@ -1,5 +1,6 @@
 using MediatR;
 using System;
+using HRMS.Application.Common.Models;
 
 namespace HRMS.Application.Payroll.Commands.AddSalaryIncrement;
 

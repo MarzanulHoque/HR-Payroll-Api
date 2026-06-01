@@ -1,4 +1,5 @@
 using MediatR;
+using HRMS.Application.Common.Models;
 
 namespace HRMS.Application.Payroll.Commands.LockPayroll;
 
