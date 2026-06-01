@@ -17,6 +17,26 @@ public class CreateDepartmentCommandHandler : IRequestHandler<CreateDepartmentCo
 
     public async Task<ApiResponse<Guid>> Handle(CreateDepartmentCommand request, CancellationToken cancellationToken)
     {
+        // Validate parent exists (if provided)
+        if (request.ParentDepartmentId.HasValue)
+        {
+            var parent = await _context.Departments.FindAsync(new object[] { request.ParentDepartmentId.Value }, cancellationToken);
+            if (parent == null)
+            {
+                return ApiResponse<Guid>.FailureResponse("Parent department not found.", new List<string> { $"ParentDepartmentId {request.ParentDepartmentId.Value} does not exist." });
+            }
+        }
+
+        // Validate manager exists (if provided)
+        if (request.ManagerId.HasValue)
+        {
+            var manager = await _context.Employees.FindAsync(new object[] { request.ManagerId.Value }, cancellationToken);
+            if (manager == null)
+            {
+                return ApiResponse<Guid>.FailureResponse("Manager not found.", new List<string> { $"ManagerId {request.ManagerId.Value} does not exist." });
+            }
+        }
+
         var department = new Department
         {
             Name = request.Name,
