@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using HRMS.Application.Payroll.Commands.LockPayroll;
 using HRMS.Application.Payroll.Commands.AddSalaryIncrement;
+using HRMS.Application.Payroll.Commands.AddPayrollAdjustment;
 using System;
 
 namespace HRMS.API.Controllers;
@@ -138,6 +139,18 @@ public class PayrollController : ControllerBase
         return Ok(resp);
     }
 
+    [HttpPost("adjustments")]
+    [Authorize(Policy = "payroll.manage")]
+    public async Task<IActionResult> AddPayrollAdjustment([FromBody] AddPayrollAdjustmentRequest request)
+    {
+        if (request == null)
+            return BadRequest(ApiResponse<string>.FailureResponse("Invalid request."));
+
+        var resp = await _mediator.Send(new AddPayrollAdjustmentCommand(request.SalarySlipId, request.Amount, request.Reason));
+        if (!resp.Success) return BadRequest(resp);
+        return Ok(resp);
+    }
+
     private static byte[] GenerateSimplePdf(string text)
     {
         // Build a very small PDF containing the provided text. This is not feature-complete
@@ -229,5 +242,12 @@ public class AddSalaryIncrementRequest
     public Guid EmployeeId { get; set; }
     public decimal Amount { get; set; }
     public DateTime EffectiveFrom { get; set; }
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class AddPayrollAdjustmentRequest
+{
+    public Guid SalarySlipId { get; set; }
+    public decimal Amount { get; set; }
     public string Reason { get; set; } = string.Empty;
 }

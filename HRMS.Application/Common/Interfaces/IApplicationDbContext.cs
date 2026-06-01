@@ -23,6 +23,7 @@ public interface IApplicationDbContext
     DbSet<SalarySlip> SalarySlips { get; }
     DbSet<PayrollPeriod> PayrollPeriods { get; }
     DbSet<SalaryIncrement> SalaryIncrements { get; }
+        DbSet<PayrollAdjustment> PayrollAdjustments { get; }
     DbSet<OrganizationPolicy> OrganizationPolicies { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<Notification> Notifications { get; }
