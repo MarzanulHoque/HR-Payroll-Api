@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.SignalR;
+using HRMS.API.SignalR;
+using HRMS.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +45,9 @@ builder.Services.AddControllers();
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Register SignalR and user id provider for email-based user ids
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, EmailUserIdProvider>();
 
 var app = builder.Build();
 
@@ -67,5 +73,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+// SignalR hubs
+app.MapHub<NotificationsHub>("/hubs/notifications");
 
 app.Run();

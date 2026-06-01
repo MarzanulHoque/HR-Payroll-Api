@@ -40,6 +40,13 @@ public class DepartmentsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("tree")]
+    public async Task<ActionResult<ApiResponse<List<HRMS.Application.Departments.Queries.GetDepartmentTree.DepartmentTreeDto>>>> GetDepartmentsTree()
+    {
+        var result = await _mediator.Send(new HRMS.Application.Departments.Queries.GetDepartmentTree.GetDepartmentsTreeQuery());
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<DepartmentDto>>> GetDepartmentById(Guid id)
     {
