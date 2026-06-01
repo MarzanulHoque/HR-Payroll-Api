@@ -4,6 +4,9 @@ using HRMS.Application.Payroll.Queries.GetSalarySlips;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using HRMS.Application.Payroll.Commands.LockPayroll;
+using HRMS.Application.Payroll.Commands.AddSalaryIncrement;
+using System;
 
 namespace HRMS.API.Controllers;
 
@@ -111,6 +114,30 @@ public class PayrollController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("lock")]
+    [Authorize(Policy = "payroll.generate")]
+    public async Task<IActionResult> LockPayroll([FromBody] LockPayrollRequest request)
+    {
+        if (request == null || string.IsNullOrWhiteSpace(request.Month))
+            return BadRequest(ApiResponse<string>.FailureResponse("Month is required."));
+
+        var resp = await _mediator.Send(new LockPayrollCommand(request.Month));
+        if (!resp.Success) return BadRequest(resp);
+        return Ok(resp);
+    }
+
+    [HttpPost("increments")]
+    [Authorize(Policy = "payroll.manage")]
+    public async Task<IActionResult> AddSalaryIncrement([FromBody] AddSalaryIncrementRequest request)
+    {
+        if (request == null)
+            return BadRequest(ApiResponse<string>.FailureResponse("Invalid request."));
+
+        var resp = await _mediator.Send(new AddSalaryIncrementCommand(request.EmployeeId, request.Amount, request.EffectiveFrom, request.Reason));
+        if (!resp.Success) return BadRequest(resp);
+        return Ok(resp);
+    }
+
     private static byte[] GenerateSimplePdf(string text)
     {
         // Build a very small PDF containing the provided text. This is not feature-complete
@@ -190,4 +217,17 @@ public class PayrollController : ControllerBase
 public class EmailRequest
 {
     public string To { get; set; } = string.Empty;
+}
+
+public class LockPayrollRequest
+{
+    public string Month { get; set; } = string.Empty;
+}
+
+public class AddSalaryIncrementRequest
+{
+    public Guid EmployeeId { get; set; }
+    public decimal Amount { get; set; }
+    public DateTime EffectiveFrom { get; set; }
+    public string Reason { get; set; } = string.Empty;
 }
