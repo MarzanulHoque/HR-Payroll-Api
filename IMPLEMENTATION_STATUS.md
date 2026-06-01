@@ -34,8 +34,10 @@ Overview: each PRD feature is marked `Implemented`, `Partially implemented`, or 
 
 8) Dashboard & Analytics
 - Dashboard endpoints: Implemented (`DashboardController`).
-- Realtime updates via SignalR: Implemented (SignalR hub + EmailUserIdProvider + controller broadcasting).
-- Advanced charts / cached stats: Partial — chart data endpoints may exist; Redis caching not implemented.
+- Realtime updates via SignalR: Implemented (SignalR hub + EmailUserIdProvider + controller broadcasting; attendance, leave, and payroll events now emit `DashboardUpdated`).
+- Dashboard cards: Implemented for total employees, present today, leave requests, and payroll expense.
+- Charts: Implemented for attendance trends and department distribution.
+- Advanced charts / cached stats: Partial — Redis caching not implemented.
 
 9) Notification Module
 - In-app notifications: Implemented (`NotificationsController`, entity, service).
