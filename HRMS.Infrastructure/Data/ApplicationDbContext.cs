@@ -23,6 +23,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<LeaveRequest> LeaveRequests { get; set; }
     public DbSet<SalarySlip> SalarySlips { get; set; }
+    public DbSet<PayrollPeriod> PayrollPeriods { get; set; }
+    public DbSet<SalaryIncrement> SalaryIncrements { get; set; }
+    public DbSet<PayrollAdjustment> PayrollAdjustments { get; set; }
     public DbSet<OrganizationPolicy> OrganizationPolicies { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<Notification> Notifications { get; set; }

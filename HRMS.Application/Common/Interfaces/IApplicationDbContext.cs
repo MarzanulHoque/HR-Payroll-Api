@@ -21,6 +21,9 @@ public interface IApplicationDbContext
     DbSet<AttendanceRecord> AttendanceRecords { get; }
     DbSet<LeaveRequest> LeaveRequests { get; }
     DbSet<SalarySlip> SalarySlips { get; }
+    DbSet<PayrollPeriod> PayrollPeriods { get; }
+    DbSet<SalaryIncrement> SalaryIncrements { get; }
+        DbSet<PayrollAdjustment> PayrollAdjustments { get; }
     DbSet<OrganizationPolicy> OrganizationPolicies { get; }
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<Notification> Notifications { get; }

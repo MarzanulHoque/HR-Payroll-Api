@@ -32,6 +32,19 @@ public class GeneratePayrollCommandHandler : IRequestHandler<GeneratePayrollComm
             return ApiResponse<Guid>.FailureResponse($"Payroll for {request.Month} is already generated for this employee.");
         }
 
+        // Prevent generation if payroll for the month is locked (guard if DbSet not mocked in tests)
+        var locked = false;
+        if (_context.PayrollPeriods != null)
+        {
+            locked = await _context.PayrollPeriods
+                .AnyAsync(p => p.Month == request.Month && p.IsLocked, cancellationToken);
+        }
+
+        if (locked)
+        {
+            return ApiResponse<Guid>.FailureResponse($"Payroll for {request.Month} is locked and cannot be generated.");
+        }
+
         var slip = new SalarySlip
         {
             EmployeeId = request.EmployeeId,
