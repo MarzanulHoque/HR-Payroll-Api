@@ -15,10 +15,15 @@ public interface IApplicationDbContext
     DbSet<User> Users { get; }
     DbSet<Role> Roles { get; }
     DbSet<UserRole> UserRoles { get; }
+    DbSet<Permission> Permissions { get; }
+    DbSet<RolePermission> RolePermissions { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<AttendanceRecord> AttendanceRecords { get; }
     DbSet<LeaveRequest> LeaveRequests { get; }
     DbSet<SalarySlip> SalarySlips { get; }
+    DbSet<OrganizationPolicy> OrganizationPolicies { get; }
+    DbSet<AuditLog> AuditLogs { get; }
+    DbSet<Notification> Notifications { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

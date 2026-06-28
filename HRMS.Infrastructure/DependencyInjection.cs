@@ -15,6 +15,16 @@ public static class DependencyInjection
 
         // Register token service
         services.AddScoped<ITokenService, TokenService>();
+        // Register permission service
+        services.AddScoped<IPermissionService, PermissionService>();
+        // Register email service as No-Op by default (safe for tests/dev).
+        services.AddScoped<IEmailService, NoOpEmailService>();
+        // Register audit service
+        services.AddScoped<IAuditService, AuditService>();
+        // Register notifications
+        services.AddScoped<INotificationService, NotificationService>();
+        // Register reporting
+        services.AddScoped<IReportService, ReportService>();
 
         return services;
     }

@@ -11,11 +11,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
 {
     private readonly IApplicationDbContext _context;
     private readonly ITokenService _tokenService;
+    private readonly IAuditService _auditService;
 
-    public LoginCommandHandler(IApplicationDbContext context, ITokenService tokenService)
+    public LoginCommandHandler(IApplicationDbContext context, ITokenService tokenService, IAuditService auditService)
     {
         _context = context;
         _tokenService = tokenService;
+        _auditService = auditService;
     }
 
     public async Task<ApiResponse<AuthResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -28,12 +30,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
 
         if (user == null || !user.IsActive)
         {
+            await _auditService.RecordAsync("LoginFailed", "User", null, request.Email, null, null, null);
             return ApiResponse<AuthResponse>.FailureResponse("Invalid credentials or inactive account.");
         }
 
         // 2. Verify password
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
+            await _auditService.RecordAsync("LoginFailed", "User", user.Id, request.Email, null, null, null);
             return ApiResponse<AuthResponse>.FailureResponse("Invalid credentials.");
         }
 
@@ -45,12 +49,15 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
         // 4. Save refresh token
         var refreshToken = new Domain.Entities.RefreshToken
         {
-            Token = refreshTokenString,
+            TokenHash = HashToken(refreshTokenString),
             Expires = DateTime.UtcNow.AddDays(7), // Set default expiry logic here or via config
             UserId = user.Id
         };
         _context.RefreshTokens.Add(refreshToken);
         await _context.SaveChangesAsync(cancellationToken);
+
+        // record successful login
+        await _auditService.RecordAsync("LoginSuccess", "User", user.Id, user.Email, null, null, null);
 
         // 5. Response
         var authResponse = new AuthResponse
@@ -60,5 +67,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, ApiResponse<Aut
         };
 
         return ApiResponse<AuthResponse>.SuccessResponse(authResponse, "Login successful.");
+    }
+
+    private static string HashToken(string token)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(token);
+        var hash = sha.ComputeHash(bytes);
+        return Convert.ToHexString(hash);
     }
 }

@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.SignalR;
+using HRMS.API.SignalR;
+using HRMS.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,12 +36,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Add services to the container.
 builder.Services.AddApplicationLayer();
 builder.Services.AddInfrastructureLayer();
+// Register permission-based authorization
+builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationPolicyProvider, HRMS.API.Authorization.PermissionPolicyProvider>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, HRMS.API.Authorization.PermissionHandler>();
 
 
 builder.Services.AddControllers();
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Register SignalR and user id provider for email-based user ids
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, EmailUserIdProvider>();
 
 var app = builder.Build();
 
@@ -49,11 +58,22 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Create the local dev schema only when it does not already exist.
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await db.Database.EnsureCreatedAsync();
+    await HRMS.Infrastructure.Seed.DatabaseSeeder.SeedAsync(app.Services);
+}
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+// SignalR hubs
+app.MapHub<NotificationsHub>("/hubs/notifications");
 
 app.Run();
