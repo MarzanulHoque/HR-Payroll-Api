@@ -24,7 +24,7 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, ApiResponse
             return ApiResponse<Guid>.FailureResponse("Employee not found.", new List<string> { $"Cannot find Employee with Id {request.EmployeeId}" });
         }
 
-        // Prevent double clocking in on the same day if they haven't clocked out
+        // Prevent double clocking in on the same day if they haven't cl ocked out
         var today = DateTime.UtcNow.Date;
         var openRecord = await _context.AttendanceRecords
             .FirstOrDefaultAsync(a => a.EmployeeId == request.EmployeeId 
